@@ -1,0 +1,153 @@
+{
+  "name": "local-asset-library",
+  "title": "Local Asset Library",
+  "description": "Browse, inspect, and copy local design assets from one library folder.",
+  "icon": "extension-icon.png",
+  "author": "miguelcorderocollar",
+  "categories": [
+    "Developer Tools",
+    "Design Tools"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "colors",
+      "title": "Browse Colors",
+      "description": "Browse, inspect, and copy colors from the library folder colors.json file.",
+      "mode": "view",
+      "keywords": [
+        "local",
+        "asset",
+        "palette",
+        "swatch",
+        "hex",
+        "rgba"
+      ],
+      "preferences": [
+        {
+          "name": "colorDefaultView",
+          "title": "Default View",
+          "description": "Choose whether colors open in grid view or list view by default.",
+          "type": "dropdown",
+          "required": false,
+          "default": "grid",
+          "data": [
+            {
+              "title": "Grid",
+              "value": "grid"
+            },
+            {
+              "title": "List",
+              "value": "list"
+            }
+          ]
+        },
+        {
+          "name": "colorGridColumns",
+          "title": "Grid Size",
+          "description": "Controls how many swatches appear per row in the Colors grid view.",
+          "type": "dropdown",
+          "required": false,
+          "default": "8",
+          "data": [
+            {
+              "title": "Small",
+              "value": "8"
+            },
+            {
+              "title": "Medium",
+              "value": "6"
+            },
+            {
+              "title": "Large",
+              "value": "4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "icons",
+      "title": "Browse Icons & Images",
+      "description": "Browse, preview, and copy local icons and images from the library folder.",
+      "mode": "view",
+      "keywords": [
+        "svg",
+        "icons",
+        "images",
+        "asset",
+        "category"
+      ],
+      "preferences": [
+        {
+          "name": "assetGridColumns",
+          "title": "Grid Size",
+          "description": "Controls how many tiles appear per row in the Icons & Images grid view.",
+          "type": "dropdown",
+          "required": false,
+          "default": "6",
+          "data": [
+            {
+              "title": "Small",
+              "value": "8"
+            },
+            {
+              "title": "Medium",
+              "value": "6"
+            },
+            {
+              "title": "Large",
+              "value": "4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "fonts",
+      "title": "Browse Fonts",
+      "description": "Browse local font families, inspect metadata, and open font files.",
+      "mode": "view",
+      "keywords": [
+        "font",
+        "typography",
+        "family",
+        "typeface",
+        "otf",
+        "ttf",
+        "woff"
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "assetRootFolder",
+      "title": "Library Folder",
+      "description": "Folder containing colors.json plus local icon, image, and font folders. Top-level folders become categories; nested folders become subcategories.",
+      "type": "directory",
+      "required": false
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.104.13",
+    "@raycast/utils": "^2.2.4",
+    "fontkit": "^2.0.4"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.0.4",
+    "@types/fontkit": "^2.0.9",
+    "@types/node": "22.15.3",
+    "@types/react": "19.1.2",
+    "eslint": "^9.25.1",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.5"
+  },
+  "scripts": {
+    "build": "ray build --skip-types -e dist -o dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "test": "vitest run"
+  }
+}
