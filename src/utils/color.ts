@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import {
   ColorAsset,
   ColorMetadata,
@@ -96,7 +98,7 @@ export function buildCustomColor(
   }
 
   return {
-    id: existingId ?? crypto.randomUUID(),
+    id: existingId ?? randomUUID(),
     name: input.name.trim(),
     category: input.category.trim(),
     subcategory: input.subcategory?.trim() || undefined,

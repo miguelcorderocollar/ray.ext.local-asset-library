@@ -33,6 +33,7 @@ export default function IconsCommand() {
   const [rootFolder, setRootFolder] = useState<string>();
   const [error, setError] = useState<string>();
   const [diagnostics, setDiagnostics] = useState<string[]>([]);
+  const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES);
   const [pinnedKeys, setPinnedKeys] = useState<string[]>([]);
   const [columns, setColumns] = useState(getAssetGridColumns());
@@ -99,11 +100,29 @@ export default function IconsCommand() {
           ),
     [icons, selectedCategory],
   );
+  const searchedIcons = useMemo(
+    () =>
+      filteredIcons.filter((icon) =>
+        matchesIconSearch(icon, searchText, pinnedSet.has(iconPinKey(icon))),
+      ),
+    [filteredIcons, pinnedSet, searchText],
+  );
   const groupedIcons = useMemo(
-    () => groupIconsByCategory(filteredIcons, pinnedSet),
-    [filteredIcons, pinnedSet],
+    () => groupIconsByCategory(searchedIcons, pinnedSet),
+    [searchedIcons, pinnedSet],
   );
   const hasConfiguredFolder = Boolean(rootFolder);
+  const hasIcons = icons.length > 0;
+  const hasSearchQuery = searchText.trim().length > 0;
+  const hasActiveFilters =
+    hasSearchQuery || selectedCategory !== ALL_CATEGORIES;
+  const hasVisibleIcons = searchedIcons.length > 0;
+  const isShowingNoResults =
+    hasConfiguredFolder &&
+    !error &&
+    hasIcons &&
+    hasActiveFilters &&
+    !hasVisibleIcons;
 
   async function togglePin(icon: IconAsset) {
     const pinKey = iconPinKey(icon);
@@ -125,8 +144,10 @@ export default function IconsCommand() {
     <Grid
       columns={columns}
       fit={Grid.Fit.Fill}
-      filtering={{ keepSectionOrder: true }}
+      filtering={false}
       isLoading={isLoading}
+      searchText={searchText}
+      onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search icons and images by name, category, subcategory, or file name"
       searchBarAccessory={
         <Grid.Dropdown
@@ -146,20 +167,41 @@ export default function IconsCommand() {
       }
     >
       <Grid.EmptyView
-        icon={hasConfiguredFolder ? Icon.MagnifyingGlass : Icon.Folder}
+        icon={
+          !hasConfiguredFolder
+            ? Icon.Folder
+            : isShowingNoResults
+              ? Icon.MagnifyingGlass
+              : Icon.Image
+        }
         title={
-          hasConfiguredFolder
-            ? "No icons or images found"
-            : "Select an asset parent folder"
+          !hasConfiguredFolder
+            ? "Select an asset parent folder"
+            : isShowingNoResults
+              ? "No results"
+              : "No icons or images found"
         }
         description={
           error ??
-          (hasConfiguredFolder
-            ? "Add SVG, PNG, JPG, GIF, WebP, AVIF, BMP, ICO, ICNS, or TIFF files anywhere in the folder tree."
-            : "Set the Library Folder preference. The same root contains colors.json plus icon, image, and font folders. Top-level folders become categories; nested folders become subcategories.")
+          (!hasConfiguredFolder
+            ? "Set the Library Folder preference. The same root contains colors.json plus icon, image, and font folders. Top-level folders become categories; nested folders become subcategories."
+            : isShowingNoResults
+              ? getNoResultsDescription(searchText, selectedCategory)
+              : "Add SVG, PNG, JPG, GIF, WebP, AVIF, BMP, ICO, ICNS, or TIFF files anywhere in the folder tree.")
         }
         actions={
           <ActionPanel>
+            {isShowingNoResults ? (
+              <Action
+                title="Clear Search and Filters"
+                icon={Icon.XMarkCircle}
+                shortcut={{ modifiers: ["cmd", "shift"], key: "x" }}
+                onAction={() => {
+                  setSearchText("");
+                  setSelectedCategory(ALL_CATEGORIES);
+                }}
+              />
+            ) : null}
             <Action
               title="Make Tiles Larger"
               icon={Icon.Plus}
@@ -333,4 +375,48 @@ function quickLookForAsset(
   icon: IconAsset,
 ): { path: string; name?: string } | undefined {
   return icon.filePath ? { path: icon.filePath, name: icon.name } : undefined;
+}
+
+function matchesIconSearch(
+  icon: IconAsset,
+  searchText: string,
+  isPinned: boolean,
+): boolean {
+  const query = searchText.trim().toLowerCase();
+  if (!query) {
+    return true;
+  }
+
+  const haystacks = [
+    icon.name,
+    icon.category,
+    icon.subcategory ?? "",
+    icon.filePath ?? "",
+    ...icon.keywords,
+    isPinned ? "pinned" : "",
+  ]
+    .join("\n")
+    .toLowerCase();
+
+  return query
+    .split(/\s+/)
+    .every((term) => term.length > 0 && haystacks.includes(term));
+}
+
+function getNoResultsDescription(
+  searchText: string,
+  selectedCategory: string,
+): string {
+  const hasSearchQuery = searchText.trim().length > 0;
+  const hasCategoryFilter = selectedCategory !== ALL_CATEGORIES;
+
+  if (hasSearchQuery && hasCategoryFilter) {
+    return `No icons or images match "${searchText}" in ${selectedCategory}.`;
+  }
+
+  if (hasSearchQuery) {
+    return `No icons or images match "${searchText}".`;
+  }
+
+  return `No icons or images found in ${selectedCategory}.`;
 }
