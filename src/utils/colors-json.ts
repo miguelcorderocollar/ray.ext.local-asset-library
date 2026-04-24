@@ -1,14 +1,13 @@
-import { showToast, Toast } from "@raycast/api";
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { ColorAsset } from "../types";
 import {
   COLORS_FILE_NAME,
-  parseColorsJson,
   sampleColorsJson,
   serializeColorsJson,
 } from "../features/colors/json";
+import { demoColors } from "./demo-assets";
 import { getLibraryFolder } from "./local-assets";
 
 type ColorsResult = {
@@ -19,45 +18,10 @@ type ColorsResult = {
 };
 
 export async function loadColorsJson(): Promise<ColorsResult> {
-  const rootFolder = getLibraryFolder();
-  if (!rootFolder) {
-    return { colors: [], errors: [] };
-  }
-
-  const colorsFilePath = getColorsFilePath(rootFolder);
-  try {
-    await access(colorsFilePath);
-  } catch {
-    return {
-      colors: [],
-      colorsFilePath,
-      rootFolder,
-      errors: [`${COLORS_FILE_NAME}: file is missing in the library folder.`],
-    };
-  }
-
-  try {
-    const rawJson = await readFile(colorsFilePath, "utf8");
-    const result = parseColorsJson(rawJson);
-    if (result.errors.length > 0) {
-      void showToast({
-        style: Toast.Style.Failure,
-        title: "Invalid colors.json",
-        message: result.errors[0],
-      });
-    }
-
-    return { ...result, colorsFilePath, rootFolder };
-  } catch (error) {
-    return {
-      colors: [],
-      colorsFilePath,
-      rootFolder,
-      errors: [
-        `${COLORS_FILE_NAME}: ${error instanceof Error ? error.message : "Could not read file."}`,
-      ],
-    };
-  }
+  return {
+    colors: demoColors(),
+    errors: [],
+  };
 }
 
 export async function saveColorsJson(colors: ColorAsset[]): Promise<string> {

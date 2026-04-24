@@ -526,6 +526,8 @@ function ColorActions({
   onToggleDetail: () => void;
   onTogglePin: (color: ColorAsset) => Promise<void>;
 }) {
+  const canManageColorJson = color.source !== "demo";
+
   return (
     <ActionPanel>
       <ActionPanel.Section>
@@ -632,33 +634,35 @@ function ColorActions({
           />
         )}
       </ActionPanel.Section>
-      <ActionPanel.Section title="colors.json">
-        <Action.Push
-          icon={Icon.Plus}
-          title="Add Color"
-          target={<ColorForm onSubmit={onSubmit} categories={categories} />}
-          shortcut={Keyboard.Shortcut.Common.New}
-        />
-        <Action.Push
-          icon={Icon.Pencil}
-          title="Edit Color"
-          target={
-            <ColorForm
-              color={color}
-              onSubmit={onSubmit}
-              categories={categories}
-            />
-          }
-          shortcut={Keyboard.Shortcut.Common.Edit}
-        />
-        <Action
-          icon={Icon.Trash}
-          title="Delete Color"
-          style={Action.Style.Destructive}
-          onAction={() => void onDelete(color)}
-          shortcut={Keyboard.Shortcut.Common.Remove}
-        />
-      </ActionPanel.Section>
+      {canManageColorJson ? (
+        <ActionPanel.Section title="colors.json">
+          <Action.Push
+            icon={Icon.Plus}
+            title="Add Color"
+            target={<ColorForm onSubmit={onSubmit} categories={categories} />}
+            shortcut={Keyboard.Shortcut.Common.New}
+          />
+          <Action.Push
+            icon={Icon.Pencil}
+            title="Edit Color"
+            target={
+              <ColorForm
+                color={color}
+                onSubmit={onSubmit}
+                categories={categories}
+              />
+            }
+            shortcut={Keyboard.Shortcut.Common.Edit}
+          />
+          <Action
+            icon={Icon.Trash}
+            title="Delete Color"
+            style={Action.Style.Destructive}
+            onAction={() => void onDelete(color)}
+            shortcut={Keyboard.Shortcut.Common.Remove}
+          />
+        </ActionPanel.Section>
+      ) : null}
       <ActionPanel.Section title="Manage">
         <Action
           title="Refresh Colors"
@@ -728,7 +732,13 @@ function ColorListDetail({
           />
           <List.Item.Detail.Metadata.Label
             title="Source"
-            text={color.source === "json" ? "colors.json" : "Local"}
+            text={
+              color.source === "json"
+                ? "colors.json"
+                : color.source === "demo"
+                  ? "Built-in demo"
+                  : "Local"
+            }
           />
           <List.Item.Detail.Metadata.Label
             title="Format"
@@ -827,6 +837,7 @@ function ColorDetail({
   const { pop } = useNavigation();
   const contrastTagColor =
     metadata.contrastText === "black" ? Color.SecondaryText : Color.Blue;
+  const canManageColorJson = color.source !== "demo";
 
   return (
     <Detail
@@ -952,35 +963,39 @@ function ColorDetail({
               onAction={() => void onTogglePin(color)}
             />
           </ActionPanel.Section>
-          <ActionPanel.Section title="colors.json">
-            <Action.Push
-              icon={Icon.Plus}
-              title="Add Color"
-              target={<ColorForm onSubmit={onSubmit} categories={categories} />}
-              shortcut={Keyboard.Shortcut.Common.New}
-            />
-            <Action.Push
-              icon={Icon.Pencil}
-              title="Edit Color"
-              target={
-                <ColorForm
-                  color={color}
-                  onSubmit={onSubmit}
-                  categories={categories}
-                />
-              }
-              shortcut={Keyboard.Shortcut.Common.Edit}
-            />
-            <Action
-              icon={Icon.Trash}
-              title="Delete Color"
-              style={Action.Style.Destructive}
-              onAction={() => {
-                void onDelete(color).then(pop);
-              }}
-              shortcut={Keyboard.Shortcut.Common.Remove}
-            />
-          </ActionPanel.Section>
+          {canManageColorJson ? (
+            <ActionPanel.Section title="colors.json">
+              <Action.Push
+                icon={Icon.Plus}
+                title="Add Color"
+                target={
+                  <ColorForm onSubmit={onSubmit} categories={categories} />
+                }
+                shortcut={Keyboard.Shortcut.Common.New}
+              />
+              <Action.Push
+                icon={Icon.Pencil}
+                title="Edit Color"
+                target={
+                  <ColorForm
+                    color={color}
+                    onSubmit={onSubmit}
+                    categories={categories}
+                  />
+                }
+                shortcut={Keyboard.Shortcut.Common.Edit}
+              />
+              <Action
+                icon={Icon.Trash}
+                title="Delete Color"
+                style={Action.Style.Destructive}
+                onAction={() => {
+                  void onDelete(color).then(pop);
+                }}
+                shortcut={Keyboard.Shortcut.Common.Remove}
+              />
+            </ActionPanel.Section>
+          ) : null}
         </ActionPanel>
       }
     />

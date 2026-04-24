@@ -1,4 +1,4 @@
-export type AssetSource = "json" | "local";
+export type AssetSource = "json" | "local" | "demo";
 
 export type ColorValue =
   | {
@@ -59,12 +59,13 @@ export type IconAsset = {
   name: string;
   category: string;
   subcategory?: string;
-  source: "local";
+  source: Exclude<AssetSource, "json">;
   defaultCopyValue: string | { file: string };
   copyLabel: string;
   keywords: string[];
   filePath?: string;
   svgMarkup?: string;
+  preview?: string;
 };
 
 export type FontFaceAsset = {
@@ -75,7 +76,7 @@ export type FontFaceAsset = {
   postscriptName?: string;
   category: string;
   subcategory?: string;
-  source: "local";
+  source: Exclude<AssetSource, "json">;
   fileName: string;
   filePath: string;
   faceIndex: number;
@@ -94,7 +95,7 @@ export type FontFamilyAsset = {
   familyName: string;
   category: string;
   subcategory?: string;
-  source: "local";
+  source: Exclude<AssetSource, "json">;
   faces: FontFaceAsset[];
   faceCount: number;
   styleCount: number;

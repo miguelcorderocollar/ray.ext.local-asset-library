@@ -169,6 +169,7 @@ function FontFamilyDetail({ family }: { family: FontFamilyAsset }) {
   const sortedFaces = [...family.faces].sort((left, right) =>
     left.styleName.localeCompare(right.styleName),
   );
+  const primaryFileLabel = family.primaryFilePath || "Built-in demo data";
 
   return (
     <List.Item.Detail
@@ -213,7 +214,7 @@ function FontFamilyDetail({ family }: { family: FontFamilyAsset }) {
           />
           <List.Item.Detail.Metadata.Label
             title="Primary File"
-            text={family.primaryFilePath}
+            text={primaryFileLabel}
           />
           <List.Item.Detail.Metadata.Separator />
           <List.Item.Detail.Metadata.Label title="Formats & Foundry" />
@@ -273,15 +274,18 @@ function FontFamilyActions({
   const postscriptNames = family.faces
     .map((face) => face.postscriptName)
     .filter((name): name is string => Boolean(name));
+  const hasFilePath = Boolean(family.primaryFilePath);
 
   return (
     <ActionPanel>
       <ActionPanel.Section>
-        <Action.Open
-          title="Open Font"
-          target={family.primaryFilePath}
-          shortcut={Keyboard.Shortcut.Common.Open}
-        />
+        {hasFilePath ? (
+          <Action.Open
+            title="Open Font"
+            target={family.primaryFilePath}
+            shortcut={Keyboard.Shortcut.Common.Open}
+          />
+        ) : null}
         <Action
           title={
             isShowingDetail ? "Hide Metadata Panel" : "Show Metadata Panel"
@@ -309,15 +313,19 @@ function FontFamilyActions({
             shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
           />
         ) : null}
-        <Action.CopyToClipboard
-          title="Copy File Path"
-          content={family.primaryFilePath}
-          shortcut={Keyboard.Shortcut.Common.CopyPath}
-        />
+        {hasFilePath ? (
+          <Action.CopyToClipboard
+            title="Copy File Path"
+            content={family.primaryFilePath}
+            shortcut={Keyboard.Shortcut.Common.CopyPath}
+          />
+        ) : null}
       </ActionPanel.Section>
       <ActionPanel.Section title="Manage">
-        <Action.ShowInFinder path={family.primaryFilePath} />
-        <Action.OpenWith path={family.primaryFilePath} />
+        {hasFilePath ? (
+          <Action.ShowInFinder path={family.primaryFilePath} />
+        ) : null}
+        {hasFilePath ? <Action.OpenWith path={family.primaryFilePath} /> : null}
         <Action
           title="Refresh Fonts"
           icon={Icon.ArrowClockwise}
