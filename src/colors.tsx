@@ -31,6 +31,7 @@ import {
   buildColorSearchKeywords,
   buildCustomColor,
   colorPinKey,
+  colorValueToCircleSwatchDataUrl,
   colorValueToCss,
   colorValueToGridColor,
   formatColorSubtitle,
@@ -456,7 +457,9 @@ export default function ColorsCommand() {
                 key={color.id}
                 title={color.name}
                 subtitle={formatColorSubtitle(color)}
-                content={{ color: colorValueToGridColor(color.value) }}
+                content={{
+                  source: colorValueToCircleSwatchDataUrl(color.value),
+                }}
                 keywords={buildColorSearchKeywords(color, isPinned)}
                 accessory={gridAccessory(color)}
                 actions={

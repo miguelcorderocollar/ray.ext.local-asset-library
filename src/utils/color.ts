@@ -60,6 +60,17 @@ export function colorValueToGridColor(value: ColorValue): string {
   return colorValueToCss(value);
 }
 
+export function colorValueToCircleSwatchDataUrl(value: ColorValue): string {
+  const fill = colorValueToCss(value);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+      <circle cx="256" cy="256" r="176" fill="${fill}" />
+    </svg>
+  `.trim();
+
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
 export function parseColorValue(rawValue: string): ColorValue | undefined {
   const value = rawValue.trim();
   const hexMatch = value.match(HEX_PATTERN);
