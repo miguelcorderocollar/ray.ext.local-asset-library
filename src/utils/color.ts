@@ -61,10 +61,34 @@ export function colorValueToGridColor(value: ColorValue): string {
 }
 
 export function colorValueToCircleSwatchDataUrl(value: ColorValue): string {
-  const fill = colorValueToCss(value);
+  const isTransparent = isTransparentColorValue(value);
+  const fillAttributes = colorValueToCircleFillAttributes(value);
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-      <circle cx="256" cy="256" r="176" fill="${fill}" />
+      ${
+        isTransparent
+          ? `
+      <defs>
+        <pattern id="checker" width="48" height="48" patternUnits="userSpaceOnUse">
+          <rect width="48" height="48" fill="#F2F2F2" />
+          <rect width="24" height="24" fill="#D7D7D7" />
+          <rect x="24" y="24" width="24" height="24" fill="#D7D7D7" />
+        </pattern>
+      </defs>
+      <circle cx="256" cy="256" r="176" fill="url(#checker)" />
+      `
+          : ""
+      }
+      <circle cx="256" cy="256" r="176" ${fillAttributes} />
+      <circle
+        cx="256"
+        cy="256"
+        r="175"
+        fill="none"
+        stroke="#FFFFFF"
+        stroke-opacity="0.8"
+        stroke-width="6"
+      />
     </svg>
   `.trim();
 
@@ -234,6 +258,32 @@ function normalizeHex(hex: string): string {
   }
 
   return `#${hex}`.toUpperCase();
+}
+
+function colorValueToCircleFillAttributes(value: ColorValue): string {
+  if (value.kind === "hex") {
+    const rgba = hexToRgba(value.hex);
+    if (!rgba || rgba.a === 1) {
+      return `fill="${value.hex}"`;
+    }
+
+    return `fill="${rgbToHex(rgba.r, rgba.g, rgba.b)}" fill-opacity="${trimAlpha(rgba.a)}"`;
+  }
+
+  if (value.a === 1) {
+    return `fill="${rgbToHex(value.r, value.g, value.b)}"`;
+  }
+
+  return `fill="${rgbToHex(value.r, value.g, value.b)}" fill-opacity="${trimAlpha(value.a)}"`;
+}
+
+function isTransparentColorValue(value: ColorValue): boolean {
+  if (value.kind === "hex") {
+    const rgba = hexToRgba(value.hex);
+    return rgba ? rgba.a < 1 : false;
+  }
+
+  return value.a < 1;
 }
 
 function hexToRgba(

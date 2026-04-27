@@ -1164,6 +1164,7 @@ function gridAccessory(color: ColorAsset): Grid.Item.Accessory | undefined {
 
   return undefined;
 }
+
 function getColorGridColumns(): number {
   const { colorGridColumns } = getPreferenceValues<ColorCommandPreferences>();
   const columns = Number(colorGridColumns ?? 8);
