@@ -262,14 +262,17 @@ export default function IconsCommand() {
                           shortcut={Keyboard.Shortcut.Common.Copy}
                         />
                         <Action.Paste
-                          title={
-                            icon.svgMarkup
-                              ? "Paste SVG Markup"
-                              : "Paste Image File"
-                          }
+                          title="Paste Image File"
                           content={icon.defaultCopyValue}
                           shortcut={{ modifiers: ["cmd"], key: "v" }}
                         />
+                        {icon.svgMarkup ? (
+                          <Action.Paste
+                            title="Paste SVG Markup"
+                            content={icon.svgMarkup}
+                            shortcut={{ modifiers: ["cmd", "shift"], key: "v" }}
+                          />
+                        ) : null}
                         {icon.filePath ? <Action.ToggleQuickLook /> : null}
                       </ActionPanel.Section>
                       <ActionPanel.Section title="Copy As">

@@ -1,7 +1,10 @@
 import { showToast, Toast } from "@raycast/api";
-import { access, readdir, readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { basename, extname, join, parse, relative } from "node:path";
 
+import { addSvgColorFallback } from "../features/icons/svg";
 import { IconAsset } from "../types";
 import {
   assetCategoryPath,
@@ -41,6 +44,12 @@ type ScanMetrics = {
   unreadableFolders: string[];
   unreadableFiles: string[];
 };
+
+const SVG_CLIPBOARD_CACHE_DIR = join(
+  tmpdir(),
+  "raycast-local-asset-library",
+  "svg-clipboard",
+);
 
 export async function loadLocalIcons(): Promise<LocalIconResult> {
   const rootFolder = getLibraryFolder();
@@ -205,7 +214,7 @@ async function readImageAsset(
   const isSvg = extension === ".svg";
   const svgMarkup = isSvg ? await readFile(filePath, "utf8") : undefined;
   const name = humanizeName(parse(fileName).name);
-  const defaultCopyValue = svgMarkup ?? { file: filePath };
+  const defaultCopyValue = await buildDefaultCopyValue(filePath, svgMarkup);
 
   return {
     id: filePath,
@@ -214,7 +223,7 @@ async function readImageAsset(
     subcategory: info.subcategory,
     source: "local",
     defaultCopyValue,
-    copyLabel: svgMarkup ? "Copy SVG Markup" : "Copy Image File",
+    copyLabel: "Copy Image File",
     keywords: [
       name,
       parse(fileName).name,
@@ -226,6 +235,35 @@ async function readImageAsset(
     filePath,
     svgMarkup,
   };
+}
+
+async function buildDefaultCopyValue(
+  filePath: string,
+  svgMarkup?: string,
+): Promise<{ file: string }> {
+  if (!svgMarkup) {
+    return { file: filePath };
+  }
+
+  const normalizedMarkup = addSvgColorFallback(svgMarkup);
+  if (normalizedMarkup === svgMarkup) {
+    return { file: filePath };
+  }
+
+  await mkdir(SVG_CLIPBOARD_CACHE_DIR, { recursive: true });
+  const fileHash = createHash("sha1")
+    .update(filePath)
+    .update("\0")
+    .update(normalizedMarkup)
+    .digest("hex")
+    .slice(0, 12);
+  const cachedFilePath = join(
+    SVG_CLIPBOARD_CACHE_DIR,
+    `${parse(filePath).name}-${fileHash}.svg`,
+  );
+
+  await writeFile(cachedFilePath, normalizedMarkup, "utf8");
+  return { file: cachedFilePath };
 }
 
 function isSupportedImage(fileName: string): boolean {
