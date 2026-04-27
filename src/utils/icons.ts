@@ -180,10 +180,7 @@ async function readImageFiles(
 
         metrics.supportedFiles += 1;
         try {
-          return await readImageAsset(
-            rootFolder,
-            join(folderPath, entry.name),
-          );
+          return await readImageAsset(rootFolder, join(folderPath, entry.name));
         } catch (error) {
           const message = `${relative(rootFolder, join(folderPath, entry.name))}: ${
             error instanceof Error ? error.message : "Could not read file"
