@@ -183,7 +183,6 @@ async function readImageFiles(
           return await readImageAsset(
             rootFolder,
             join(folderPath, entry.name),
-            metrics,
           );
         } catch (error) {
           const message = `${relative(rootFolder, join(folderPath, entry.name))}: ${

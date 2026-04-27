@@ -31,7 +31,7 @@ describe("icons model", () => {
   it("keeps pinned assets in a dedicated first section", () => {
     const grouped = groupIconsByCategory(
       [secondIcon, firstIcon],
-      new Set([firstIcon.filePath]),
+      new Set([firstIcon.filePath ?? firstIcon.id]),
     );
 
     expect(grouped).toEqual([

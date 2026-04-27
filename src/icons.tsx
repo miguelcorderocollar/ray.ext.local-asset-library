@@ -246,7 +246,7 @@ export default function IconsCommand() {
                   key={icon.id}
                   title={icon.name}
                   subtitle={iconCategoryPath(icon)}
-                  content={{ source: icon.preview ?? icon.filePath ?? "" }}
+                  content={{ source: icon.filePath ?? "" }}
                   keywords={
                     isPinned
                       ? [...icon.keywords, "pinned", "pin"]
