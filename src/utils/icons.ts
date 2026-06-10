@@ -168,36 +168,34 @@ async function readImageFiles(
     );
   }
 
-  const fileIcons = await Promise.all(
-    entries
-      .filter((entry) => entry.isFile())
-      .map(async (entry) => {
-        metrics.files += 1;
-        if (!isSupportedImage(entry.name)) {
-          metrics.skippedFiles += 1;
-          return undefined;
-        }
+  const fileIcons: IconAsset[] = [];
+  for (const entry of entries) {
+    if (!entry.isFile()) {
+      continue;
+    }
 
-        metrics.supportedFiles += 1;
-        try {
-          return await readImageAsset(rootFolder, join(folderPath, entry.name));
-        } catch (error) {
-          const message = `${relative(rootFolder, join(folderPath, entry.name))}: ${
-            error instanceof Error ? error.message : "Could not read file"
-          }`;
-          metrics.unreadableFiles.push(message);
-          console.log(
-            `[Local Asset Library] Skipping unreadable file: ${message}`,
-          );
-          return undefined;
-        }
-      }),
-  );
+    metrics.files += 1;
+    if (!isSupportedImage(entry.name)) {
+      metrics.skippedFiles += 1;
+      continue;
+    }
 
-  return [
-    ...fileIcons.filter((icon): icon is IconAsset => Boolean(icon)),
-    ...nestedIcons,
-  ];
+    metrics.supportedFiles += 1;
+    const entryPath = join(folderPath, entry.name);
+    try {
+      fileIcons.push(await readImageAsset(rootFolder, entryPath));
+    } catch (error) {
+      const message = `${relative(rootFolder, entryPath)}: ${
+        error instanceof Error ? error.message : "Could not read file"
+      }`;
+      metrics.unreadableFiles.push(message);
+      console.log(
+        `[Local Asset Library] Skipping unreadable file: ${message}`,
+      );
+    }
+  }
+
+  return [...fileIcons, ...nestedIcons];
 }
 
 async function readImageAsset(

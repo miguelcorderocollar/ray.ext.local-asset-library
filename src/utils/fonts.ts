@@ -168,59 +168,55 @@ async function readFontFiles(
     }
   }
 
-  const fontFaces = await Promise.all(
-    entries.map(async (entry) => {
-      if (entry.name.startsWith(".")) {
-        return [];
-      }
+  const fontFaces: FontFaceAsset[] = [];
+  for (const entry of entries) {
+    if (entry.name.startsWith(".")) {
+      continue;
+    }
 
-      const filePath = join(folderPath, entry.name);
-      const fileStats = entry.isSymbolicLink()
-        ? await stat(filePath).catch(() => undefined)
-        : undefined;
-      const isFileEntry = entry.isFile() || fileStats?.isFile();
-      if (!isFileEntry) {
-        return [];
-      }
+    const filePath = join(folderPath, entry.name);
+    const fileStats = entry.isSymbolicLink()
+      ? await stat(filePath).catch(() => undefined)
+      : undefined;
+    const isFileEntry = entry.isFile() || fileStats?.isFile();
+    if (!isFileEntry) {
+      continue;
+    }
 
-      metrics.files += 1;
-      if (!isSupportedFont(entry.name)) {
-        metrics.skippedFiles += 1;
-        return [];
-      }
+    metrics.files += 1;
+    if (!isSupportedFont(entry.name)) {
+      metrics.skippedFiles += 1;
+      continue;
+    }
 
-      metrics.supportedFiles += 1;
+    metrics.supportedFiles += 1;
+    try {
+      fontFaces.push(...readFontAsset(rootFolder, filePath));
+    } catch (error) {
+      const message = `${relative(rootFolder, filePath)}: ${
+        error instanceof Error ? error.message : "Could not read font metadata"
+      }`;
+      metrics.fallbackFaces += 1;
+      console.log(
+        `[Local Asset Library] Falling back to filename metadata: ${message}`,
+      );
       try {
-        return readFontAsset(rootFolder, filePath);
-      } catch (error) {
-        const message = `${relative(rootFolder, filePath)}: ${
-          error instanceof Error
-            ? error.message
-            : "Could not read font metadata"
+        fontFaces.push(buildFallbackFontFaceAsset(rootFolder, filePath));
+      } catch (fallbackError) {
+        const fallbackMessage = `${relative(rootFolder, filePath)}: ${
+          fallbackError instanceof Error
+            ? fallbackError.message
+            : "Could not read font file"
         }`;
-        metrics.fallbackFaces += 1;
+        metrics.unreadableFiles.push(fallbackMessage);
         console.log(
-          `[Local Asset Library] Falling back to filename metadata: ${message}`,
+          `[Local Asset Library] Skipping unreadable font: ${fallbackMessage}`,
         );
-        try {
-          return [buildFallbackFontFaceAsset(rootFolder, filePath)];
-        } catch (fallbackError) {
-          const fallbackMessage = `${relative(rootFolder, filePath)}: ${
-            fallbackError instanceof Error
-              ? fallbackError.message
-              : "Could not read font file"
-          }`;
-          metrics.unreadableFiles.push(fallbackMessage);
-          console.log(
-            `[Local Asset Library] Skipping unreadable font: ${fallbackMessage}`,
-          );
-          return [];
-        }
       }
-    }),
-  );
+    }
+  }
 
-  return [...fontFaces.flat(), ...nestedFonts];
+  return [...fontFaces, ...nestedFonts];
 }
 
 function readFontAsset(rootFolder: string, filePath: string): FontFaceAsset[] {
